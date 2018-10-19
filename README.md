@@ -9,13 +9,13 @@ Folgende Funktionen werden im Augenblick unterstützt:
 Für die horizontalen und vertikalen Klemmenpläne wird in der Excel-Datei jeweils ein Arbeitsblatt angelegt. Die Klemmen Statistik befindet sich am Ende des vertikalen Klemmenplans.
 
 Horizontaler Klemmenplan
-![Horizontaler Klemmenplan](/doc/images/Klemmenplan-Horizontal.png)
+<img alt="Horizontaler Klemmenplan" src="/doc/images/Klemmenplan-Horizontal.png" width="700">
 
-Vertikaler Klemmenplan
-![Vertikaler Klemmenplan](/doc/images/Klemmenplan-Vertikal.png)
+Vertikaler Klemmenplan<br>
+<img alt="Vertikaler Klemmenplan" src="/doc/images/Klemmenplan-Vertikal.png" width="700">
 
-Klemmen Statistik
-![Klemmenplan Statistik](/doc/images/Klemmenplan-Statistik.png)
+Klemmen Statistik<br>
+<img alt="Klemmenplan Statistik" src="/doc/images/Klemmenplan-Statistik.png" width="400">
 
 ### Kommandozeilenparameter
 -t, --token         WEBAPI Token für Authentifizierung<br>
