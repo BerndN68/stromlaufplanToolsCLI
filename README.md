@@ -7,7 +7,7 @@ Folgende Funktionen werden im Augenblick unterstützt:
 - Erstellung von Klemmplänen
 
 
-<h3>Kommandozeilenparameter</h3><br>
+### Kommandozeilenparameter
 -t, --token         WEBAPI Token für Authentifizierung<br>
 -l, --List          Befehl zum Auslesen einer Liste mit allen Projekten<br>
 -k, --Klemmenplan   Befehl zum Export eines Klemmenplans für die angegebenen Projekte<br>
@@ -17,7 +17,7 @@ Folgende Funktionen werden im Augenblick unterstützt:
 Beispielaufruf für die Erstellung einer Klemmenliste für 2 stromlaufplan.de Projekte:<br>
 -t <token> -l -k -o c:\temp\Klemmenplan.xlsx -i <project id#1> 24073 8715
 
-<h3>Konfiguration</h3><br>
+### Konfiguration
 In der config-Datei können für die unterschiedlichen Leitungstypen die zu Klemmen definiert werden die im KLemmenplan verwendet werden können.
 
 Anhand des im Stromlaufplan verwendeten Leitungstyps und des Querschnittes werden die konfigurierten Klemmen berücksichtigt.
