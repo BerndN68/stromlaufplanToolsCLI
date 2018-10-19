@@ -66,12 +66,12 @@ namespace stromlaufplanToolsCLI.Commands
             WriteLeitungsliste(ws, outNodes);
             Console.WriteLine("ok");
 
-            Console.Write($"Klemmliste (Vertikal) erstellen ... ");
+            Console.Write($"Klemmenplan (Vertikal) erstellen ... ");
             ws = xlPackage.Workbook.Worksheets.Add($"{data.documentData.projectName}-KL-V");
             WriteKlemmlisteVertikal(ws, outNodes);
             Console.WriteLine("ok");
 
-            Console.Write($"Klemmliste (Horizontal) erstellen ... ");
+            Console.Write($"Klemmenplan (Horizontal) erstellen ... ");
             ws = xlPackage.Workbook.Worksheets.Add($"{data.documentData.projectName}-KL-H");
             WriteKlemmlisteHorizontal(ws, outNodes);
             Console.WriteLine("ok");
@@ -81,7 +81,7 @@ namespace stromlaufplanToolsCLI.Commands
         private void WriteKlemmlisteHorizontal(ExcelWorksheet ws, IEnumerable<TreeNodeDataOut> outNodes)
         {
             string letzteKlemmleiste = string.Empty;
-            int rowNo = 1, colNo = 1;
+            int colNo = 1;
             int currentKlemmeNrInLeiste = 0;
 
             const double COLUMN_WIDTH = 2.0;
@@ -195,7 +195,7 @@ namespace stromlaufplanToolsCLI.Commands
             var gesamtanzahlReihenklemmen = new Dictionary<string, int>();
 
             string letzteKlemmleiste = string.Empty;
-            int rowNo = 1, colNo = 1;
+            int rowNo = 1;
             int currentKlemmeNrInLeiste = 0;
 
             ws.Cells[rowNo, 1].Value = "L-Nummer";

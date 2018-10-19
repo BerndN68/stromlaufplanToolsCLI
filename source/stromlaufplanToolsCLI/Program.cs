@@ -21,7 +21,7 @@ namespace stromlaufplanToolsCLI
                         command.Execute();
                     }
 
-                    if (o.Klemmliste)
+                    if (o.Klemmenplan)
                     {
                         var config =
                             (LeitungstypConfigurationSection)System.Configuration.ConfigurationManager.GetSection(
