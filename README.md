@@ -3,9 +3,19 @@ Kommandozeilentool zum extrahieren von Daten aus <http://Stromlaufplan.de>
 
 Folgende Funktionen werden im Augenblick unterstützt:
 - Auslesen aller Projekte
-- Erstellung einer Leitungsliste
-- Erstellung von Klemmplänen
+- Erstellung einer Leitungsliste und Export in eine Excel-Datei
+- Erstellung von Klemmplänen und Export in eine Excel-Datei
 
+Für die horizontalen und vertikalen Klemmenpläne wird in der Excel-Datei jeweils ein Arbeitsblatt angelegt. Die Klemmen Statistik befindet sich am Ende des vertikalen Klemmenplans.
+
+Horizontaler Klemmenplan
+![Horizontaler Klemmenplan](/doc/images/Klemmenplan-Horizontal.png)
+
+Vertikaler Klemmenplan
+![Vertikaler Klemmenplan](/doc/images/Klemmenplan-Vertikal.png)
+
+Klemmen Statistik
+![Klemmenplan Statistik](/doc/images/Klemmenplan-Statistik.png)
 
 ### Kommandozeilenparameter
 -t, --token         WEBAPI Token für Authentifizierung<br>
