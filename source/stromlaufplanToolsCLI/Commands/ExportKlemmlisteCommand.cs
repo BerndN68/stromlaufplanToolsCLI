@@ -197,27 +197,31 @@ namespace stromlaufplanToolsCLI.Commands
             string letzteKlemmleiste = string.Empty;
             int rowNo = 1;
             int currentKlemmeNrInLeiste = 0;
+            int leitungNr = 1;
 
-            ws.Cells[rowNo, 1].Value = "L-Nummer";
-            ws.Column(1).Width = 13;
+            ws.Cells[rowNo, 1].Value = "Nr";
+            ws.Column(1).Width = 4;
 
-            ws.Cells[rowNo, 2].Value = "Leitungsname";
-            ws.Column(2).Width = 38;
+            ws.Cells[rowNo, 2].Value = "L-Nummer";
+            ws.Column(2).Width = 13;
 
-            ws.Cells[rowNo, 3].Value = "Leitungstyp";
-            ws.Column(3).Width = 13.5;
+            ws.Cells[rowNo, 3].Value = "Leitungsname";
+            ws.Column(3).Width = 38;
 
-            ws.Cells[rowNo, 4].Value = "Klemmenleiste";
-            ws.Column(4).Width = 5;
+            ws.Cells[rowNo, 4].Value = "Leitungstyp";
+            ws.Column(4).Width = 13.5;
 
-            ws.Cells[rowNo, 5].Value = "Klemme";
-            ws.Column(5).Width = 11;
+            ws.Cells[rowNo, 5].Value = "Klemmenleiste";
+            ws.Column(5).Width = 5;
 
-            ws.Cells[rowNo, 7].Value = "Klemmentyp";
-            ws.Column(7).Width = 11;
+            ws.Cells[rowNo, 6].Value = "Klemme";
+            ws.Column(6).Width = 11;
 
-            ws.Cells[rowNo, 8].Value = "Beschreibung";
-            ws.Column(8).Width = 28;
+            ws.Cells[rowNo, 8].Value = "Klemmentyp";
+            ws.Column(8).Width = 11;
+
+            ws.Cells[rowNo, 9].Value = "Beschreibung";
+            ws.Column(9).Width = 28;
 
             rowNo++;
 
@@ -240,42 +244,50 @@ namespace stromlaufplanToolsCLI.Commands
 
                 var leitungLastRow = rowNo + reihenklemmen.Sum( x => x.Width ) - 1;
 
-                // Col1: L-Nummer
-                ws.Cells[rowNo, 1].Value = $"{nodeData.leitungsnummer}";
+                // Col1: Nr
+                ws.Cells[rowNo, 1].Value = leitungNr++;
                 range = ws.Cells[rowNo, 1, leitungLastRow, 1];
                 range.Merge = true;
                 range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                 range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                 range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-
                 // Col2: L-Nummer
-                ws.Cells[rowNo, 2].Value = $"{nodeData.leitungsname}";
+                ws.Cells[rowNo, 2].Value = $"{nodeData.leitungsnummer}";
                 range = ws.Cells[rowNo, 2, leitungLastRow, 2];
                 range.Merge = true;
                 range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                 range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                 range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-                // Col3: Leitungstyp
-                ws.Cells[rowNo, 3].Value = $"{nodeData.leitungstyp} {nodeData.adern.Length}x{nodeData.querschnitt}";
+
+                // Col3: L-Nummer
+                ws.Cells[rowNo, 3].Value = $"{nodeData.leitungsname}";
                 range = ws.Cells[rowNo, 3, leitungLastRow, 3];
                 range.Merge = true;
                 range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                 range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                 range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-                // Col4: Klemmenleiste
-                ws.Cells[rowNo, 4].Value = $"{nodeData.klemmleiste}";
+                // Col4: Leitungstyp
+                ws.Cells[rowNo, 4].Value = $"{nodeData.leitungstyp} {nodeData.adern.Length}x{nodeData.querschnitt}";
                 range = ws.Cells[rowNo, 4, leitungLastRow, 4];
                 range.Merge = true;
                 range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                 range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                 range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-                // Col5: Klemmenblocknummer
-                ws.Cells[rowNo, 5].Value = $"{nodeData.klemmenBlockNummer}";
+                // Col5: Klemmenleiste
+                ws.Cells[rowNo, 5].Value = $"{nodeData.klemmleiste}";
                 range = ws.Cells[rowNo, 5, leitungLastRow, 5];
+                range.Merge = true;
+                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                // Col6: Klemmenblocknummer
+                ws.Cells[rowNo, 6].Value = $"{nodeData.klemmenBlockNummer}";
+                range = ws.Cells[rowNo, 6, leitungLastRow, 6];
                 range.Merge = true;
                 range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                 range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
@@ -294,29 +306,29 @@ namespace stromlaufplanToolsCLI.Commands
                         gesamtanzahlReihenklemmen[currentKlemme.Description] = gesamtanzahlReihenklemmen[currentKlemme.Description] + 1;
                     }
 
-                    // Col 6: Klemmen
+                    // Col 7: Klemmen
                     var klemme = string.Join(",", reihenklemmen[idx].Klemmen);
                     var row = rowNo + (idx * reihenklemmen[idx].Width);
 
-                    ws.Cells[row, 6].Value = $"{klemme}";
-                    range = ws.Cells[row, 6, row + reihenklemmen[idx].Width - 1, 6];
+                    ws.Cells[row, 7].Value = $"{klemme}";
+                    range = ws.Cells[row, 7, row + reihenklemmen[idx].Width - 1, 7];
                     range.Merge = true;
                     range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                     range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                     range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-                    // Col 7: Klemmentyp
-                    ws.Cells[row, 7].Value = reihenklemmen[idx].Name;
-                    range = ws.Cells[row, 7, row + reihenklemmen[idx].Width - 1, 7];
+                    // Col 8: Klemmentyp
+                    ws.Cells[row,8].Value = reihenklemmen[idx].Name;
+                    range = ws.Cells[row, 8, row + reihenklemmen[idx].Width - 1, 8];
                     range.Merge = true;
                     range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                     range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                     range.Style.Fill.PatternType = ExcelFillStyle.Solid;
                     range.Style.Fill.BackgroundColor.SetColor(reihenklemmen[idx].Color);
 
-                    // Col 8: Beschreibung
-                    ws.Cells[row, 8].Value = reihenklemmen[idx].Description;
-                    range = ws.Cells[row, 8, row + reihenklemmen[idx].Width - 1, 8];
+                    // Col 9: Beschreibung
+                    ws.Cells[row, 9].Value = reihenklemmen[idx].Description;
+                    range = ws.Cells[row, 9, row + reihenklemmen[idx].Width - 1, 98];
                     range.Merge = true;
                     range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                     range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
@@ -328,13 +340,13 @@ namespace stromlaufplanToolsCLI.Commands
 
             // Klemmenstatistik ausgeben
             rowNo += 3;
-            ws.Cells[rowNo, 1].Value = "Klemme";
+            ws.Cells[rowNo, 3].Value = "Klemme";
             ws.Cells[rowNo, 4].Value = "Anzahl";
 
             foreach (var reihenklemme in gesamtanzahlReihenklemmen)
             {
                 rowNo++;
-                ws.Cells[rowNo, 1].Value = reihenklemme.Key;
+                ws.Cells[rowNo, 3].Value = reihenklemme.Key;
                 ws.Cells[rowNo, 4].Value = reihenklemme.Value;
             }
         }
@@ -548,50 +560,55 @@ namespace stromlaufplanToolsCLI.Commands
         private void WriteLeitungsliste(ExcelWorksheet ws, IEnumerable<TreeNodeDataOut> outNodes)
         {
             int rowNo = 1;
+            int leitungNr = 1;
 
-            ws.Cells[rowNo, 1].Value = "Klemmleiste";
-            ws.Column(1).Width = 5;
+            ws.Cells[rowNo, 1].Value = "Nr";
+            ws.Column(1).Width = 4;
 
-            ws.Cells[rowNo, 2].Value = "Klemme";
+            ws.Cells[rowNo, 2].Value = "Klemmleiste";
             ws.Column(2).Width = 5;
 
-            ws.Cells[rowNo, 3].Value = "L-Nummer";
-            ws.Column(3).Width = 13;
+            ws.Cells[rowNo, 3].Value = "Klemme";
+            ws.Column(3).Width = 5;
 
-            ws.Cells[rowNo, 4].Value = "Leitungsname";
-            ws.Column(4).Width = 38;
+            ws.Cells[rowNo, 4].Value = "L-Nummer";
+            ws.Column(4).Width = 13;
 
-            ws.Cells[rowNo, 5].Value = "Leitungstyp";
-            ws.Column(5).Width = 12;
+            ws.Cells[rowNo, 5].Value = "Leitungsname";
+            ws.Column(5).Width = 38;
 
-            ws.Cells[rowNo, 6].Value = "Anz. Adern";
-            ws.Column(6).Width = 3;
+            ws.Cells[rowNo, 6].Value = "Leitungstyp";
+            ws.Column(6).Width = 12;
 
-            ws.Cells[rowNo, 7].Value = "Querschnitt";
-            ws.Column(7).Width = 4;
+            ws.Cells[rowNo, 7].Value = "Anz. Adern";
+            ws.Column(7).Width = 3;
 
-            ws.Cells[rowNo, 8].Value = "Leitungstyp";
-            ws.Column(8).Width = 16;
+            ws.Cells[rowNo, 8].Value = "Querschnitt";
+            ws.Column(8).Width = 4;
 
-            ws.Cells[rowNo, 9].Value = "Individuelle Leitungsbezeichnung";
-            ws.Column(9).Width = 40;
+            ws.Cells[rowNo, 9].Value = "Leitungstyp";
+            ws.Column(9).Width = 16;
+
+            ws.Cells[rowNo, 10].Value = "Individuelle Leitungsbezeichnung";
+            ws.Column(10).Width = 40;
 
             rowNo++;
             foreach (var nodeData in outNodes.OrderBy(x => x.KlemmleisteNummer).ThenBy(x => x.klemmenBlockNummer))
             {
                 //To set values in the spreadsheet use the Cells indexer.
-                ws.Cells[rowNo, 1].Value = nodeData.klemmleiste;
-                ws.Cells[rowNo, 2].Value = nodeData.klemmenBlockNummer;
-                ws.Cells[rowNo, 3].Value = nodeData.leitungsnummer;
-                ws.Cells[rowNo, 4].Value = nodeData.leitungsname;
-                ws.Cells[rowNo, 5].Value = nodeData.leitungstyp;
-                ws.Cells[rowNo, 6].Value = nodeData.adern.Length;
-                ws.Cells[rowNo, 7].Value = nodeData.querschnitt;
-                ws.Cells[rowNo, 8].Value = CreateLeitungstypWithQuerschnitt(nodeData);
+                ws.Cells[rowNo, 1].Value = leitungNr++;
+                ws.Cells[rowNo, 2].Value = nodeData.klemmleiste;
+                ws.Cells[rowNo, 3].Value = nodeData.klemmenBlockNummer;
+                ws.Cells[rowNo, 4].Value = nodeData.leitungsnummer;
+                ws.Cells[rowNo, 5].Value = nodeData.leitungsname;
+                ws.Cells[rowNo, 6].Value = nodeData.leitungstyp;
+                ws.Cells[rowNo, 7].Value = nodeData.adern.Length;
+                ws.Cells[rowNo, 8].Value = nodeData.querschnitt;
+                ws.Cells[rowNo, 9].Value = CreateLeitungstypWithQuerschnitt(nodeData);
 
                 if (nodeData.individuelleLeitungsbezeichnungActive)
                 {
-                    ws.Cells[rowNo, 9].Value = $"{nodeData.leitungsnummer}\n{nodeData.individuelleLeitungsbezeichnung}";
+                    ws.Cells[rowNo, 10].Value = $"{nodeData.leitungsnummer}\n{nodeData.individuelleLeitungsbezeichnung}";
                 }
 
                 ++rowNo;
