@@ -231,8 +231,16 @@ namespace stromlaufplanToolsCLI.Commands
                 if (letzteKlemmleiste != nodeData.klemmleiste)
                 {
                     currentKlemmeNrInLeiste = 0;
+
+                    // Beim Wechsel der Klemmleiste eine Leerzeile einfügen
+                    if (!string.IsNullOrEmpty(letzteKlemmleiste))
+                    {
+                        ws.Row(rowNo).Height = 10;
+                        rowNo++;
+                    }
                 }
                 letzteKlemmleiste = nodeData.klemmleiste;
+
 
                 var reihenklemmen = CreateReihenklemmen(nodeData, ref currentKlemmeNrInLeiste);
 
@@ -241,13 +249,11 @@ namespace stromlaufplanToolsCLI.Commands
                     continue;
                 }
 
-                ExcelRange range;
-
                 var leitungLastRow = rowNo + reihenklemmen.Sum( x => x.Width ) - 1;
 
                 // Col1: Nr
                 ws.Cells[rowNo, 1].Value = leitungNr++;
-                range = ws.Cells[rowNo, 1, leitungLastRow, 1];
+                var range = ws.Cells[rowNo, 1, leitungLastRow, 1];
                 range.Merge = true;
                 range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                 range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
