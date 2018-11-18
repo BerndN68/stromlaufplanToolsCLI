@@ -193,6 +193,7 @@ namespace stromlaufplanToolsCLI.Commands
         private void WriteKlemmlisteVertikal(ExcelWorksheet ws, IEnumerable<TreeNodeDataOut> outNodes)
         {
             var gesamtanzahlReihenklemmen = new Dictionary<string, int>();
+            var leitungstypMitQuerschnittStatistik = new Dictionary<string, int>();
 
             string letzteKlemmleiste = string.Empty;
             int rowNo = 1;
@@ -335,15 +336,48 @@ namespace stromlaufplanToolsCLI.Commands
                     range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
                 }
 
+                var leitungstyp = CreateLeitungstypWithQuerschnitt(nodeData);
+                if (leitungstypMitQuerschnittStatistik.ContainsKey(leitungstyp))
+                {
+                    leitungstypMitQuerschnittStatistik[leitungstyp] = ++leitungstypMitQuerschnittStatistik[leitungstyp];
+                }
+                else
+                {
+                    leitungstypMitQuerschnittStatistik[leitungstyp] = 1;
+                }
+
                 rowNo = leitungLastRow + 1;
             }
 
-            // Klemmenstatistik ausgeben
+            // Statistik Leitungstypen ausgeben
             rowNo += 3;
+            WriteLeitungstypMitQuerschnittStatistik(ws, ref rowNo, leitungstypMitQuerschnittStatistik);
+
+            // Statistik Klemmen ausgeben
+            rowNo += 3;
+            WriteKlemmenStatistik(ws, ref rowNo, gesamtanzahlReihenklemmen);
+
+        }
+
+        private void WriteLeitungstypMitQuerschnittStatistik(ExcelWorksheet ws, ref int rowNo, Dictionary<string, int> leitungstypMitQuerschnittStatistik)
+        {
+            ws.Cells[rowNo, 3].Value = "Leitungstyp";
+            ws.Cells[rowNo, 4].Value = "Anzahl";
+
+            foreach (var reihenklemme in leitungstypMitQuerschnittStatistik.OrderBy( x => x.Key))
+            {
+                rowNo++;
+                ws.Cells[rowNo, 3].Value = reihenklemme.Key;
+                ws.Cells[rowNo, 4].Value = reihenklemme.Value;
+            }
+        }
+
+        private void WriteKlemmenStatistik(ExcelWorksheet ws, ref int rowNo, Dictionary<string, int> gesamtanzahlReihenklemmen)
+        {
             ws.Cells[rowNo, 3].Value = "Klemme";
             ws.Cells[rowNo, 4].Value = "Anzahl";
 
-            foreach (var reihenklemme in gesamtanzahlReihenklemmen)
+            foreach (var reihenklemme in gesamtanzahlReihenklemmen.OrderBy(x => x.Key))
             {
                 rowNo++;
                 ws.Cells[rowNo, 3].Value = reihenklemme.Key;
