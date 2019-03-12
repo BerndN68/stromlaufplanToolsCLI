@@ -17,7 +17,6 @@ namespace stromlaufplanToolsCLI
         [Option('i', "ids", Required = false, HelpText = "Liste der Projekte für die ein Klemmenplan erstellt werden soll")]
         public IEnumerable<string> Ids { get; set; }
 
-
         [Option('o', "output", Required = true, HelpText = "Name der Excel-Datei für den Klemmenplan Export")]
         public string OutputFilename { get; set; }
 

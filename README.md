@@ -5,6 +5,7 @@ Folgende Funktionen werden im Augenblick unterstützt:
 - Auslesen aller Projekte
 - Erstellung einer Leitungsliste und Export in eine Excel-Datei
 - Erstellung von Klemmplänen und Export in eine Excel-Datei
+- Erstellung einer Datenaustauschdatei für den Wago SmartDesigner
 
 Für die horizontalen und vertikalen Klemmenpläne wird in der Excel-Datei jeweils ein Arbeitsblatt angelegt. Die Klemmen Statistik befindet sich am Ende des vertikalen Klemmenplans.
 
@@ -23,9 +24,18 @@ Klemmen Statistik<br>
 -k, --Klemmenplan   Befehl zum Export eines Klemmenplans für die angegebenen Projekte<br>
 -i, --ids           Liste der Projekte für die ein Klemmenplan erstellt werden soll<br>
 -o, --output        Name der Excel-Datei für den Klemmenplan Export<br>
+-w, --WagoXML       Befehl zum Export eines Klemmenplans zum Import im Wago SmartDesigner
+-s, --tragschienen  Definiert welche Klemmeleisten zu einer Tragschiene hinzugefügt wird
 
 Beispielaufruf für die Erstellung einer Klemmenliste für 2 stromlaufplan.de Projekte:<br>
--t <token> -l -k -o c:\temp\Klemmenplan.xlsx -i <project id#1> 24073 8715
+-t <token> -l -k -o c:\temp\Klemmenplan.xlsx -i <project id#1> <project id#2>
+
+
+Beispielaufruf für die Esrstellung der Datenaustauschdatei für den Wago SmartDesigner:<br>
+-t <token> -o c:\temp\Stromlaufplan\Klemmenplan.xlsx -i 24073 8716 8715  -w -s 24073:X1,X2,X3,X4,X5,X15,X17;X6,X7,X8,X9,X10,X11,X20,X21,X22,X23,X25
+
+
+
 
 ### Konfiguration
 In der config-Datei können für die unterschiedlichen Leitungstypen die Klemmen definiert werden, die im Klemmenplan verwendet werden sollen. Es kann eine Liste mit Leitungstypen definiert werden. Anhand der Kriterien typ, leitungstyp und min/max-Querschnitt wird dann der korrekte Leitungstyp mit den zugehörigen Klemmen ermittelt. Wichtig: diese Liste wird in der Reihenfolge durchsucht, wie sie in der config-Datei definiert ist.
