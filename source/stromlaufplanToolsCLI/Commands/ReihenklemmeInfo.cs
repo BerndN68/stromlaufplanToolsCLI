@@ -7,9 +7,11 @@ namespace stromlaufplanToolsCLI.Commands
 {
     public class ReihenklemmeInfo
     {
+        public string ArticleNo { get; }
 
-        public ReihenklemmeInfo(string name, string description, string klemmen, int width, IEnumerable<Adern> adern, Color color)
+        public ReihenklemmeInfo(string name, string description, string articleNo, string klemmen, int width, IEnumerable<Adern> adern, Color color)
         {
+            ArticleNo = articleNo;
             Klemmen = klemmen;
             Name = name;
             Description = description;

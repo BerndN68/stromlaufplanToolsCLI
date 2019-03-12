@@ -21,5 +21,10 @@ namespace stromlaufplanToolsCLI
         [Option('o', "output", Required = true, HelpText = "Name der Excel-Datei für den Klemmenplan Export")]
         public string OutputFilename { get; set; }
 
+        [Option('w', "WagoXML", Required = false, HelpText = "Befehl zum Export eines Klemmenplans zum Import im Wago SmartDesigner")]
+        public bool WagoXML { get; set; }
+
+        [Option('s', "tragschienen", Required = true, HelpText = "Definiert welche Klemmeleisten zu einer Tragschiene hinzugefügt wird")]
+        public string TragschienenKonfiguration { get; set; }
     }
 }

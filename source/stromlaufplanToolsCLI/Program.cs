@@ -1,4 +1,6 @@
-﻿using CommandLine;
+﻿using System.Collections.Specialized;
+using System.Configuration;
+using CommandLine;
 using stromlaufplanToolsCLI.Commands;
 using stromlaufplanToolsCLI.Configuration;
 
@@ -24,12 +26,15 @@ namespace stromlaufplanToolsCLI
                     if (o.Klemmenplan)
                     {
                         var config =
-                            (LeitungstypConfigurationSection)System.Configuration.ConfigurationManager.GetSection(
+                            (LeitungstypConfigurationSection)ConfigurationManager.GetSection(
                                 "Leitungstypen");
+                        var reihenklemmenCfg = (NameValueCollection)ConfigurationManager.GetSection("Reihenklemmen");
 
-                        var command = new ExportKlemmlisteCommand(o.Token, o.Ids, o.OutputFilename, config.LeitungstypConfigurations);
+
+                        var command = new ExportKlemmlisteCommand(o.Token, o.Ids, o.OutputFilename, o.WagoXML, o.TragschienenKonfiguration, config.LeitungstypConfigurations, reihenklemmenCfg);
                         command.Execute();
                     }
+
 
                 });
 

@@ -35,6 +35,11 @@ namespace stromlaufplanToolsCLI.Configuration
                 DESCRIPTION_PROPERTY,
                 typeof(string),
                 null));
+
+            Properties.Add(new ConfigurationProperty(
+                ARTICLENO_PROPERTY,
+                typeof(string),
+                null));
         }
 
 
@@ -93,6 +98,15 @@ namespace stromlaufplanToolsCLI.Configuration
             }
         }
 
+        public string ArticleNo
+        {
+            get => (string)this[ARTICLENO_PROPERTY];
+            set
+            {
+                this[ARTICLENO_PROPERTY] = value;
+            }
+        }
+
         /// <summary>
         /// short name
         /// </summary>
@@ -105,5 +119,7 @@ namespace stromlaufplanToolsCLI.Configuration
         private const string WIDTH_PROPERTY = "width";
 
         private const string DESCRIPTION_PROPERTY = "description";
+
+        private const string ARTICLENO_PROPERTY = "articleNo";
     }
 }

@@ -151,6 +151,11 @@
     <Compile Include="StromplanModels\TreeNodeDataOut.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Wago\Article.cs" />
+    <Compile Include="Wago\Carrier.cs" />
+    <Compile Include="Wago\Marking.cs" />
+    <Compile Include="Wago\Project.cs" />
+    <Compile Include="Wago\WagoXmlCae.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
