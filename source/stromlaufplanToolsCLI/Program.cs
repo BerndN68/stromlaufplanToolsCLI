@@ -18,7 +18,7 @@ namespace stromlaufplanToolsCLI
                 {
 
                     if (o.List)
-                    {
+                    {   
                         var command = new ProjectListCommand(o.Token);
                         command.Execute();
                     }

@@ -116,6 +116,12 @@ namespace stromlaufplanToolsCLI.Commands
 
                 //Save the new workbook. We haven't specified the filename so use the Save as method.
                 Console.Write($"Excel Datei speichern {_outputFileName} ... ");
+
+                if (!Directory.Exists(outputPath))
+                {
+                    Directory.CreateDirectory(outputPath);
+                }
+
                 xlPackage.SaveAs(new FileInfo(_outputFileName));
                 Console.WriteLine("ok");
 
@@ -221,7 +227,7 @@ namespace stromlaufplanToolsCLI.Commands
                 .OfType<TreeNodeDataOut>().ToList();
 
             const int PROJECT_NAME_MAX_LENGTH = 15;
-            var projectName = data.documentData.projectName.Substring(0, PROJECT_NAME_MAX_LENGTH);
+            var projectName = data.documentData.projectName.Truncate(PROJECT_NAME_MAX_LENGTH);
 
             //A workbook must have at least on cell, so lets add one... 
             Console.Write($"Datenliste erstellen ... ");

@@ -32,8 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommandLine, Version=2.3.0.0, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
-      <HintPath>..\packages\CommandLineParser.2.3.0\lib\net45\CommandLine.dll</HintPath>
+    <Reference Include="CommandLine, Version=2.4.3.0, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.2.4.3\lib\netstandard2.0\CommandLine.dll</HintPath>
     </Reference>
     <Reference Include="EPPlus, Version=4.5.2.1, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.4.5.2.1\lib\net40\EPPlus.dll</HintPath>
@@ -132,6 +132,7 @@
     <Compile Include="Commands\ProjectListCommand.cs" />
     <Compile Include="Commands\CommandBase.cs" />
     <Compile Include="Common\ListExtensions.cs" />
+    <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Configuration\KlemmeConfigurationElement.cs" />
     <Compile Include="Configuration\KlemmeElementCollection.cs" />
     <Compile Include="Configuration\LeitungstypConfigurationElement.cs" />
