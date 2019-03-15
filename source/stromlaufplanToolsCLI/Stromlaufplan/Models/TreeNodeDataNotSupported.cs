@@ -1,4 +1,4 @@
-﻿namespace stromlaufplanToolsCLI.StromplanModels
+﻿namespace stromlaufplanToolsCLI.Stromlaufplan.Models
 {
     public class TreeNodeDataNotSupported : TreeNodeDataBase
     {

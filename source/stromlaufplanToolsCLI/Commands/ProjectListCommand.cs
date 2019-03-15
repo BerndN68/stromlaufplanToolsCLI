@@ -1,5 +1,5 @@
 ﻿using System;
-using stromlaufplanToolsCLI.StromplanModels;
+using stromlaufplanToolsCLI.Stromlaufplan.Models;
 
 namespace stromlaufplanToolsCLI.Commands
 {
@@ -13,10 +13,10 @@ namespace stromlaufplanToolsCLI.Commands
 
         public override void Execute()
         {
-            var result = ExecuteUrl<Project[]>("projects");
+            var projects = RestClient.GetProjects();
 
             Console.WriteLine("Liste der verfügbaren Projekte:");
-            foreach (var project in result)
+            foreach (var project in projects)
             {
                 Console.WriteLine($"{project.name}: id = {project.id}");
             }

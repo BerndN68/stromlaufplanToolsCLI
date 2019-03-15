@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace stromlaufplanToolsCLI.StromplanModels
+namespace stromlaufplanToolsCLI.Stromlaufplan.Models
 {
     public abstract class TreeNodeDataBase
     {

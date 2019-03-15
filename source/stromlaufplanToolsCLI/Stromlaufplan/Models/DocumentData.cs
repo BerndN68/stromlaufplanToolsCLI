@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace stromlaufplanToolsCLI.StromplanModels
+namespace stromlaufplanToolsCLI.Stromlaufplan.Models
 {
     public class DocumentData
     {

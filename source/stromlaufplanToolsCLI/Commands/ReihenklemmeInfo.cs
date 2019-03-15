@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using stromlaufplanToolsCLI.StromplanModels;
+using stromlaufplanToolsCLI.Stromlaufplan.Models;
 
 namespace stromlaufplanToolsCLI.Commands
 {

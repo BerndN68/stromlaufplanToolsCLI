@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace stromlaufplanToolsCLI.StromplanModels
+namespace stromlaufplanToolsCLI.Stromlaufplan.Models
 {
     public class PlanData
     {

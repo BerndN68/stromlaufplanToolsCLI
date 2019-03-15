@@ -2,7 +2,7 @@
 using System.Windows.Media.TextFormatting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using stromlaufplanToolsCLI.StromplanModels;
+using stromlaufplanToolsCLI.Stromlaufplan.Models;
 
 namespace stromlaufplanToolsCLI.Json
 {

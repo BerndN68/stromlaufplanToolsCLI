@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace stromlaufplanToolsCLI.StromplanModels
+namespace stromlaufplanToolsCLI.Stromlaufplan.Models
 {
     public class TreeNode
     {

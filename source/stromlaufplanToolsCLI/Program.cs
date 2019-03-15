@@ -9,35 +9,54 @@ namespace stromlaufplanToolsCLI
     /// <summary>
     /// 
     /// </summary>
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
             Parser.Default.ParseArguments<Options>(args)
-                .WithParsed<Options>(o =>
-                {
+                .WithParsed<Options>(RunWithOptions);
+        }
 
-                    if (o.List)
-                    {   
-                        var command = new ProjectListCommand(o.Token);
-                        command.Execute();
-                    }
+        internal static void RunWithOptions(Options options)
+        {
+            if (options.List)
+            {
+                var command = new ProjectListCommand(options.Token);
+                command.Execute();
+            }
 
-                    if (o.Klemmenplan)
-                    {
-                        var config =
-                            (LeitungstypConfigurationSection)ConfigurationManager.GetSection(
-                                "Leitungstypen");
-                        var reihenklemmenCfg = (NameValueCollection)ConfigurationManager.GetSection("Reihenklemmen");
-
-
-                        var command = new ExportKlemmlisteCommand(o.Token, o.Ids, o.OutputFilename, o.WagoXML, o.TragschienenKonfiguration, config.LeitungstypConfigurations, reihenklemmenCfg);
-                        command.Execute();
-                    }
+            if (options.Klemmenplan)
+            {
+                var config =
+                    (LeitungstypConfigurationSection)ConfigurationManager.GetSection(
+                        "Leitungstypen");
 
 
-                });
+                var command = new ExportKlemmlisteCommand(
+                    options.Token,
+                    options.Ids,
+                    options.OutputFilename,
+                    config.LeitungstypConfigurations);
+                command.Execute();
+            }
 
+            if (options.WagoXML)
+            {
+                var config =
+                    (LeitungstypConfigurationSection)ConfigurationManager.GetSection(
+                        "Leitungstypen");
+                var reihenklemmenCfg = (NameValueCollection)ConfigurationManager.GetSection("Reihenklemmen");
+
+
+                var command = new ExportWagoXmlCommand(
+                    options.Token,
+                    options.Ids,
+                    options.OutputFilename,
+                    options.TragschienenKonfiguration,
+                    config.LeitungstypConfigurations,
+                    reihenklemmenCfg);
+                command.Execute();
+            }
         }
 
     }

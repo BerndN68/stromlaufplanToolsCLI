@@ -2,6 +2,7 @@
 using RestSharp;
 using RestSharp.Authenticators;
 using stromlaufplanToolsCLI.Json;
+using stromlaufplanToolsCLI.Stromlaufplan;
 
 namespace stromlaufplanToolsCLI.Commands
 {
@@ -11,22 +12,10 @@ namespace stromlaufplanToolsCLI.Commands
 
         public CommandBase(string token)
         {
-            _token = token;
+            RestClient = new StromlaufplanRestClient(token);
         }
 
-        protected T ExecuteUrl<T>(string url)
-        {
-            var client = new RestClient($"https://beta.stromlaufplan.de/webapi/{url}");
-            client.Authenticator = new JwtAuthenticator(_token);
-            var request = new RestRequest(Method.GET);
-            request.RequestFormat = DataFormat.Json;
-
-            IRestResponse response = client.Execute(request);
-
-            var data = JsonConvert.DeserializeObject<T>(response.Content, new JsonItemConverter());
-
-            return data;
-        }
+        public StromlaufplanRestClient RestClient { get; }
 
         public abstract void Execute();
     }

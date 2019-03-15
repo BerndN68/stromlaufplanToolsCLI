@@ -1,46 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Xml;
-using System.Xml.Serialization;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using stromlaufplanToolsCLI.Configuration;
 using stromlaufplanToolsCLI.EPPlus;
-using stromlaufplanToolsCLI.StromplanModels;
 using stromlaufplanToolsCLI.Common;
-using stromlaufplanToolsCLI.Wago;
-using Project = stromlaufplanToolsCLI.Wago.Project;
+using stromlaufplanToolsCLI.Stromlaufplan.Models;
 
 namespace stromlaufplanToolsCLI.Commands
 {
     public class ExportKlemmlisteCommand : CommandBase
     {
         private readonly IEnumerable<string> _ids;
-        private readonly string _outputFileName;
-        private readonly bool _createWagoXml;
-        private readonly string _tragschienenKonfiguration;
-        private readonly LeitungstypConfigurationElementCollection _configLeitungstypConfigurations;
-        private readonly NameValueCollection _reihenklemmenCfg;
+        private string _outputFileName;
+        private readonly ReihenklemmenCreator _reihenklemmenCreator;
 
-        public ExportKlemmlisteCommand(string token,
+        public ExportKlemmlisteCommand(
+            string token,
             IEnumerable<string> ids,
             string outputFileName,
-            bool createWagoXml,
-            string tragschienenKonfiguration,
-            LeitungstypConfigurationElementCollection configLeitungstypConfigurations,
-            NameValueCollection reihenklemmenCfg)
+            LeitungstypConfigurationElementCollection configLeitungstypConfigurations)
             : base(token)
         {
             _ids = ids;
             _outputFileName = outputFileName;
-            _createWagoXml = createWagoXml;
-            _tragschienenKonfiguration = tragschienenKonfiguration;
-            _configLeitungstypConfigurations = configLeitungstypConfigurations;
-            _reihenklemmenCfg = reihenklemmenCfg;
+            _reihenklemmenCreator = new ReihenklemmenCreator(configLeitungstypConfigurations);
         }
 
         public override void Execute()
@@ -54,6 +41,12 @@ namespace stromlaufplanToolsCLI.Commands
                 Directory.CreateDirectory(outputPath);
             }
 
+            var fileName = Path.GetFileName(_outputFileName);
+            if (string.IsNullOrEmpty(fileName))
+            {
+                _outputFileName = Path.Combine(_outputFileName, "export.xlsx");
+            }
+
             //Creates a blank workbook. Use the using statment, so the package is disposed when we are done.
             using (var xlPackage = new ExcelPackage())
             {
@@ -61,66 +54,15 @@ namespace stromlaufplanToolsCLI.Commands
                 {
 
                     Console.Write($"Projektdaten für Projekt {projectId} von stromlaufplan.de lesen ... ");
-                    var data = ExecuteUrl<PlanData>($"projects/{projectId}/export/json");
+                    var data = RestClient.GetData(projectId);
                     Console.WriteLine("ok");
 
+
                     ExportKlemmliste(xlPackage, data);
-
-                    if (_createWagoXml)
-                    {
-                        var tragschienenKonfiguration = new List<string[]>();
-
-                        var alleKlemmleisten = data.treeNodeDatas.Values.OfType<TreeNodeDataOut>()
-                            .Select( x => x.klemmleiste )
-                            .GroupBy(x => x ).Select( x => x.Key ).ToList();
-
-                        // tragschienenkonfiguration auswerten
-                        var konfigurationenAlleProjekte = _tragschienenKonfiguration.Split('|');
-                        foreach (var konfigurationProjekt in konfigurationenAlleProjekte)
-                        {
-                            var array = konfigurationProjekt.Split(':');
-                            if (array[0] == projectId)
-                            {
-                                // gefundene Konfiguration weiter zerlegen
-                                var tragschienenArray = array[1].Split(';');
-                                foreach (var tragschiene in tragschienenArray)
-                                {
-                                    tragschienenKonfiguration.Add(tragschiene.Split(','));
-                                }
-                            }
-                        }
-
-                        // alle noch fehlenden Klemmeleisten zu einer neuen Tragschiene hinzufügen
-                        var fehlendeKlemmleisten =
-                            alleKlemmleisten.Except(tragschienenKonfiguration.SelectMany(x => x)).ToList();
-                        if (fehlendeKlemmleisten.Any())
-                        {
-                            tragschienenKonfiguration.Add(fehlendeKlemmleisten.ToArray());
-                        }
-
-                        int no = 1;
-                        foreach (var einzelneTragschieneKfg in tragschienenKonfiguration)
-                        {
-                            Console.Write($"WAGO Klemmenplan #{no} ({string.Join(",", einzelneTragschieneKfg)}) erstellen ... ");
-                            var xmlFileName = Path.Combine(outputPath, data.documentData.projectName + "_#" + no + ".xml");
-                            WriteWagoXmlFile(data, xmlFileName, einzelneTragschieneKfg.ToList());
-                            Console.WriteLine("ok");
-
-                            no++;
-                        }
-
-
-                    }
-
                 }
 
                 //Save the new workbook. We haven't specified the filename so use the Save as method.
                 Console.Write($"Excel Datei speichern {_outputFileName} ... ");
-
-                if (!Directory.Exists(outputPath))
-                {
-                    Directory.CreateDirectory(outputPath);
-                }
 
                 xlPackage.SaveAs(new FileInfo(_outputFileName));
                 Console.WriteLine("ok");
@@ -131,96 +73,7 @@ namespace stromlaufplanToolsCLI.Commands
 
         }
 
-        private void WriteWagoXmlFile(PlanData data, string xmlFileName, List<string> tragschienenKonfiguration)
-        {
-            // jedes Listenelement entspricht einer
-
-
-            var xmlProject = new Project { Name = data.documentData.projectAddress.Replace( "\n", "- ") };
-
-            // Tragschiene
-            xmlProject.Carrier = new Carrier { ArticleNo = "210-112", Name = data.documentData.projectName };
-
-
-            var outNodes = data.treeNodeDatas.Values.OfType<TreeNodeDataOut>().ToList();
-
-            string letzteKlemmleiste = string.Empty;
-            string klemmeKlemmleistenEnde = string.Empty; // Klemme die am Ende einer Klemmleiste hinzugefügt werden muss
-            string klemmeMarking = string.Empty;
-            int position = 1;
-
-            foreach (var nodeData in outNodes
-                .Where( x => tragschienenKonfiguration.Contains( x.klemmleiste) )      // nur die angegebenen Klemmleisten exportieren
-                //.OrderBy( x => tragschienenKonfiguration.IndexOf(x.klemmleiste))       // die Reihenfolge wird durch die Konfiguration definiert.
-                .OrderBy(x => x.KlemmleisteNummer)
-                .ThenBy(x => x.klemmenBlockNummer))
-            {
-                if (letzteKlemmleiste != nodeData.klemmleiste)
-                {
-                    if (!string.IsNullOrEmpty(klemmeKlemmleistenEnde))
-                    {
-                        AddWagoKlemme(xmlProject, ref position, klemmeKlemmleistenEnde);
-                        klemmeKlemmleistenEnde = string.Empty;
-                    }
-
-                    // für 230V Klemmleisten werden Einspeiseklemme und Sammelschienenträger hinzugefügt
-                    if (nodeData.Type == "out")
-                    {
-                        // Einspeiseklemme sofort hinzufügen
-                        AddWagoKlemme(xmlProject, ref position, _reihenklemmenCfg["Einspeiseklemme"], nodeData.klemmleiste);
-
-                        // Sammelschienenträger merken wir uns bis zum Ende der Klemmleiste
-                        klemmeKlemmleistenEnde = _reihenklemmenCfg["Sammelschienenträger"];
-                    }
-                    else
-                    {
-                        // ansonsten beschriften wir die erste Klemme mit dem Namend er Klemmleiste
-                        klemmeMarking = nodeData.klemmleiste;
-                    }
-                }
-                letzteKlemmleiste = nodeData.klemmleiste;
-
-
-                int currentKlemmeNrInLeiste = 0;
-                var reihenklemmen = CreateReihenklemmen(nodeData, ref currentKlemmeNrInLeiste);
-
-                if (!reihenklemmen.Any())
-                {
-                    continue;
-                }
-
-                for (int idx = 0; idx < reihenklemmen.Count; idx++)
-                {
-                    var currentKlemme = reihenklemmen[idx];
-
-                    AddWagoKlemme(xmlProject, ref position, currentKlemme.ArticleNo, klemmeMarking);
-                    klemmeMarking = string.Empty;
-                }
-
-            }
-
-            // evtl. fehlt noch der Sammelschienenträger 
-            if (!string.IsNullOrEmpty(klemmeKlemmleistenEnde))
-            {
-                AddWagoKlemme(xmlProject, ref position, klemmeKlemmleistenEnde);
-            }
-
-            var wagoXmlCae = new WagoXmlCae { Project = xmlProject};
-            SaveWagoXmlFile(wagoXmlCae, xmlFileName);
-        }
-
-        private void AddWagoKlemme(Project xmlProject, ref int position, string articleNo, string marking = null)
-        {
-            var article = new Article {ArticleNo = articleNo, Position = position++};
-            if (!string.IsNullOrEmpty(marking))
-            {
-                article.Marking = new Marking();
-                article.Marking.Lines.Add(marking);
-            }
-
-            xmlProject.Carrier.ProjectArticles.Add(article);
-        }
-
+ 
         private void ExportKlemmliste(ExcelPackage xlPackage, PlanData data)
         {
             var outNodes = data.treeNodeDatas.Values
@@ -270,7 +123,7 @@ namespace stromlaufplanToolsCLI.Commands
                     currentKlemmeNrInLeiste = 0;
                 }
 
-                var reihenklemmen = CreateReihenklemmen(nodeData, ref currentKlemmeNrInLeiste);
+                var reihenklemmen = _reihenklemmenCreator.CreateReihenklemmen(nodeData, ref currentKlemmeNrInLeiste);
                 if (!reihenklemmen.Any())
                 {
                     continue;
@@ -417,7 +270,7 @@ namespace stromlaufplanToolsCLI.Commands
                 letzteKlemmleiste = nodeData.klemmleiste;
 
 
-                var reihenklemmen = CreateReihenklemmen(nodeData, ref currentKlemmeNrInLeiste);
+                var reihenklemmen = _reihenklemmenCreator.CreateReihenklemmen(nodeData, ref currentKlemmeNrInLeiste);
 
                 if (!reihenklemmen.Any())
                 {
@@ -517,7 +370,7 @@ namespace stromlaufplanToolsCLI.Commands
                     range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
                 }
 
-                var leitungstyp = CreateLeitungstypWithQuerschnitt(nodeData);
+                var leitungstyp = ReihenklemmenCreator.CreateLeitungstypWithQuerschnitt(nodeData);
                 if (leitungstypMitQuerschnittStatistik.ContainsKey(leitungstyp))
                 {
                     leitungstypMitQuerschnittStatistik[leitungstyp] = ++leitungstypMitQuerschnittStatistik[leitungstyp];
@@ -540,25 +393,6 @@ namespace stromlaufplanToolsCLI.Commands
 
         }
 
-        private void SaveWagoXmlFile(WagoXmlCae xml, string fileName)
-        {
-            try
-            {
-                var xmlDocument = new XmlDocument();
-                var serializer = new XmlSerializer(xml.GetType());
-                using (var stream = new MemoryStream())
-                {
-                    serializer.Serialize(stream, xml);
-                    stream.Position = 0;
-                    xmlDocument.Load(stream);
-                    xmlDocument.Save(fileName);
-                }
-            }
-            catch (Exception ex)
-            {
-                //Log exception here
-            }
-        }
 
         private void WriteLeitungstypMitQuerschnittStatistik(ExcelWorksheet ws, ref int rowNo, Dictionary<string, int> leitungstypMitQuerschnittStatistik)
         {
@@ -586,211 +420,8 @@ namespace stromlaufplanToolsCLI.Commands
             }
         }
 
-        private List<ReihenklemmeInfo> CreateReihenklemmen(TreeNodeDataOut nodeData, ref int currentKlemmeNrInLeiste)
-        {
-            if (nodeData.klemmleiste == "(intern)")
-            {
-                return new List<ReihenklemmeInfo>();
-            }
-
-            if (!TryGetLeitungstypConfiguration(nodeData, out var leitungstypCfg))
-            {
-                throw new NotSupportedException(
-                    $"Konfiguration für Typ '{nodeData.Type}' und Leitungstyp '{nodeData.leitungstyp}' ist nicht vorhanden.");
-            }
-
-            var reihenklemmen = new List<ReihenklemmeInfo>();
-
-            var nichtbearbeiteteAdern = nodeData.adern.ToList();
-
-            while (nichtbearbeiteteAdern.Any())
-            {
-                if (TryGetKlemmeConfiguration(leitungstypCfg, nichtbearbeiteteAdern, out var klemmeCfg, out var adernFuerKlemme))
-                {
-                    // Reihenklemme erstellen
-                    reihenklemmen.Add(new ReihenklemmeInfo(
-                        klemmeCfg.ShortName, 
-                        klemmeCfg.Description, 
-                        klemmeCfg.ArticleNo,
-                        CreateKlemmenListe(ref currentKlemmeNrInLeiste, adernFuerKlemme), 
-                        klemmeCfg.Width,
-                        adernFuerKlemme,
-                        klemmeCfg.Color));
 
 
-                    // nicht bearbeitete Adern aktualisieren
-                    nichtbearbeiteteAdern.RemoveRange(adernFuerKlemme);
-                }
-                else
-                {
-                    throw new NotSupportedException(
-                        $"Keine Klemmen-Konfiguration gefunden für '{string.Join(",", nichtbearbeiteteAdern.Select(x => x.klemmenTyp).ToArray())}'.");
-                }
-            }
-
-            return reihenklemmen;
-        }
-
-        private bool TryGetKlemmeConfiguration(LeitungstypConfigurationElement leitungstypCfg, List<Adern> adern, out KlemmeConfigurationElement klemmeCfg, out List<Adern> usedAdern)
-        {
-            if (IsMehrstockklemmenModus(leitungstypCfg))
-            {
-                // größtmögliche Klemme, allerdings muss es für die restlichen Adern noch eine passende Klemme geben
-                var klemmeCfgSortiert = leitungstypCfg.Klemmen.OfType<KlemmeConfigurationElement>()
-                    .OrderBy(x => x.Typen.Length).ToList();
-
-                for (int idx = klemmeCfgSortiert.Count-1; idx >=0; idx--)
-                {
-                    var adernFuerAktuelleSuche = adern.ToList();
-
-                    var currentKlemmeCfg = klemmeCfgSortiert[idx];
-                    if (currentKlemmeCfg.Typen.Length <= adern.Count || idx == 0)
-                    {
-                        // gibt es für die restlichen Adern noch eine passende Klemme?
-                        usedAdern = adern.Take(currentKlemmeCfg.Typen.Length).ToList();
-
-                        var anzVerbleibendeAdern = adernFuerAktuelleSuche.Count - usedAdern.Count;
-                        if (anzVerbleibendeAdern != 0 && idx > 0 && anzVerbleibendeAdern < klemmeCfgSortiert[0].Typen.Length)
-                        {
-                            currentKlemmeCfg = klemmeCfgSortiert[idx-1];
-                            usedAdern = adern.Take(currentKlemmeCfg.Typen.Length).ToList();
-                        }
-
-                        adernFuerAktuelleSuche.RemoveRange(usedAdern);
-                        klemmeCfg = currentKlemmeCfg;
-                        return true;
-                    }
-                }
-
-            }
-
-            foreach (KlemmeConfigurationElement currentKlemmeCfg in leitungstypCfg.Klemmen)
-            {
-                var alleAdern = adern.ToList();
-                usedAdern = new List<Adern>();
-                bool valid = true;
-
-                // nur die ersten x Adern betrachten
-                var adernFuerAktuelleSuche = alleAdern.Take(currentKlemmeCfg.Typen.Length).ToList();
-                foreach (var typ in currentKlemmeCfg.Typen)
-                {
-                    bool optional = false;
-                    var currentTyp = typ;
-                    if (IsOptional(typ))
-                    {
-                        optional = true;
-                        currentTyp = typ.Trim(new[] {'[', ']'});
-                    }
-
-                    var foundAder = adernFuerAktuelleSuche.FirstOrDefault(x => IsKlemmenTyp(x.klemmenTyp, currentTyp));
-                    if (foundAder == null && optional == false)
-                    {
-                        // suche abbrechen
-                        valid = false;
-                        break;
-                    }
-
-                    if (foundAder != null)
-                    {
-                        adernFuerAktuelleSuche.Remove(foundAder);
-                        usedAdern.Add(foundAder);
-                    }
-                }
-
-                if (valid)
-                {
-                    klemmeCfg = currentKlemmeCfg;
-                    return true;
-                }
-
-            }
-
-            klemmeCfg = null;
-            usedAdern = null;
-            return false;
-        }
-
-        private bool IsKlemmenTyp(string klemmenTyp, string searchPattern)
-        {
-            return klemmenTyp.StartsWith(searchPattern) || (searchPattern == "out" && klemmenTyp == "reserve") || searchPattern == "*";
-        }
-
-        /// <summary>
-        /// Wenn alle Klemmen "*" als typ haben
-        /// </summary>
-        /// <param name="leitungstypCfg"></param>
-        /// <returns></returns>
-        private bool IsMehrstockklemmenModus(LeitungstypConfigurationElement leitungstypCfg)
-        {
-
-            foreach (KlemmeConfigurationElement klemmeCfg in leitungstypCfg.Klemmen)
-            {
-                foreach (var typ in klemmeCfg.Typen)
-                {
-                    if (typ != "*")
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        private bool IsOptional(string typ)
-        {
-            return typ.StartsWith("[") && typ.EndsWith("]");
-        }
-
-        private bool TryGetLeitungstypConfiguration(TreeNodeDataOut nodeData, out LeitungstypConfigurationElement configuration)
-        {
-            var leitungstyp = CreateLeitungstypWithQuerschnitt(nodeData);
-
-            float.TryParse(nodeData.querschnitt, out var querschnitt);
-
-            foreach (LeitungstypConfigurationElement leitungstypElement in _configLeitungstypConfigurations)
-            {
-                if (!string.IsNullOrEmpty(leitungstypElement.Typ) && nodeData.Type != leitungstypElement.Typ)
-                {
-                    continue;
-                }
-
-                if (!leitungstypElement.Leitungstypen.Any() ||
-                    leitungstypElement.Leitungstypen.Any(x => leitungstyp.Contains(x)) &&
-                    querschnitt >= leitungstypElement.MinQ && querschnitt<= leitungstypElement.MaxQ)
-                {
-                    configuration = leitungstypElement;
-                    return true;
-                }
-            }
-
-            configuration = null;
-            return false;
-        }
-
-        private static string CreateLeitungstypWithQuerschnitt(TreeNodeDataOut nodeData)
-        {
-            return $"{nodeData.leitungstyp} {nodeData.adern.Length}x{nodeData.querschnitt}";
-        }
-
-        private string CreateKlemmenListe(ref int currentKlemmeNrInLeiste, IEnumerable<Adern> adern)
-        {
-            string result = string.Empty;
-
-            foreach (var ader in adern)
-            {
-                if (ader.klemmenTyp != "N" && ader.klemmenTyp != "PE")
-                {
-                    if (!string.IsNullOrEmpty(result))
-                    {
-                        result += ",";
-                    }
-                    result += (++currentKlemmeNrInLeiste).ToString();
-                }
-            }
-
-            return result;
-        }
 
 
         private void WriteLeitungsliste(ExcelWorksheet ws, PlanData data)
@@ -843,7 +474,7 @@ namespace stromlaufplanToolsCLI.Commands
                 ws.Cells[rowNo, 6].Value = nodeData.leitungstyp;
                 ws.Cells[rowNo, 7].Value = nodeData.adern.Length;
                 ws.Cells[rowNo, 8].Value = nodeData.querschnitt;
-                ws.Cells[rowNo, 9].Value = CreateLeitungstypWithQuerschnitt(nodeData);
+                ws.Cells[rowNo, 9].Value = ReihenklemmenCreator.CreateLeitungstypWithQuerschnitt(nodeData);
 
                 if (nodeData.individuelleLeitungsbezeichnungActive)
                 {
