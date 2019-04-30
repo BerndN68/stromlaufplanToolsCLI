@@ -1,0 +1,12 @@
+﻿C:\%user%\source\github_repos\StromlaufplanToolCLITests.runsettings
+
+<RunSettings>
+	<TestRunParameters>
+		<Parameter name="ApiToken" value="xxx" />
+		<Parameter name="ApiTokensShallowTests" value="xxxx,yyyy" />
+	</TestRunParameters>
+	
+	<RunConfiguration>
+		<ResultsDirectory>.\TestResults</ResultsDirectory>
+	</RunConfiguration>
+</RunSettings>
