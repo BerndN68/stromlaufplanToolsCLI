@@ -9,6 +9,8 @@ using stromlaufplanToolsCLI.Stromlaufplan;
 namespace StromlaufplanToolsTests
 {
     /// <summary>
+    /// Schnelltest verschiedener Szenarien und Projekte. Diese Tests dienen dazu die Funktionsweise mit bereits
+    /// existierenden Projekte sicherzustellen.
     /// Ruft die statische Main Methode mit verschiedenen Parametern auf und prüft ob die erwarteten Dateien
     /// im Ausgabeverzeichnis vorhanden sind.
     /// </summary>
