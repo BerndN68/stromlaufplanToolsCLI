@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace stromlaufplanToolsCLI.Wago
+namespace stromlaufplanToolsCLI.Export.Wago
 {
     public class Carrier
     {

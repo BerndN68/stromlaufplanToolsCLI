@@ -7,35 +7,24 @@ using System.Xml;
 using System.Xml.Serialization;
 using OfficeOpenXml;
 using stromlaufplanToolsCLI.Configuration;
+using stromlaufplanToolsCLI.Export.Wago;
 using stromlaufplanToolsCLI.Stromlaufplan.Models;
-using stromlaufplanToolsCLI.Wago;
-using Project = stromlaufplanToolsCLI.Wago.Project;
+using Project = stromlaufplanToolsCLI.Export.Wago.Project;
 
 
 namespace stromlaufplanToolsCLI.Commands
 {
-    internal class ExportWagoXmlCommand : CommandBase
+    internal class ExportWagoXmlCommand : ExportDataCommandBase
     {
-        private readonly IEnumerable<string> _ids;
-        private readonly string _outputFileName;
-        private readonly string _tragschienenKonfiguration;
-        private readonly NameValueCollection _reihenklemmenCfg;
-        private readonly ReihenklemmenCreator _reihenklemmenCreator;
-
         public ExportWagoXmlCommand(
             string token,
             IEnumerable<string> ids,
-            string outputFileName,
+            string outputPath,
             string tragschienenKonfiguration,
             LeitungstypConfigurationElementCollection configLeitungstypConfigurations,
             NameValueCollection reihenklemmenCfg)
-            : base(token)
+            : base(token, ids, outputPath, tragschienenKonfiguration, configLeitungstypConfigurations, reihenklemmenCfg)
         {
-            _ids = ids;
-            _outputFileName = outputFileName;
-            _tragschienenKonfiguration = tragschienenKonfiguration;
-            _reihenklemmenCreator = new ReihenklemmenCreator(configLeitungstypConfigurations);
-            _reihenklemmenCfg = reihenklemmenCfg;
         }
 
 
@@ -44,11 +33,7 @@ namespace stromlaufplanToolsCLI.Commands
             Console.WriteLine("Wago SmartDesigner XML Datei exportieren");
 
             // Ausgabeverzeichnis erstellen
-            var outputPath = Path.GetDirectoryName(_outputFileName);
-            if (!Directory.Exists(outputPath))
-            {
-                Directory.CreateDirectory(outputPath);
-            }
+            EnsureOutputPathExists();
 
             //Creates a blank workbook. Use the using statment, so the package is disposed when we are done.
             using (var xlPackage = new ExcelPackage())
@@ -60,42 +45,19 @@ namespace stromlaufplanToolsCLI.Commands
                     var data = RestClient.GetData(projectId);
                     Console.WriteLine("ok");
 
-                    var tragschienenKonfiguration = new List<string[]>();
-
                     var alleKlemmleisten = data.treeNodeDatas.Values.OfType<TreeNodeDataOut>()
                         .Select(x => x.klemmleiste)
                         .GroupBy(x => x).Select(x => x.Key).ToList();
 
                     // tragschienenkonfiguration auswerten
-                    var konfigurationenAlleProjekte = _tragschienenKonfiguration?.Split('|') ?? new string[]{};
-                    foreach (var konfigurationProjekt in konfigurationenAlleProjekte)
-                    {
-                        var array = konfigurationProjekt.Split(':');
-                        if (array[0] == projectId)
-                        {
-                            // gefundene Konfiguration weiter zerlegen
-                            var tragschienenArray = array[1].Split(';');
-                            foreach (var tragschiene in tragschienenArray)
-                            {
-                                tragschienenKonfiguration.Add(tragschiene.Split(','));
-                            }
-                        }
-                    }
-
-                    // alle noch fehlenden Klemmeleisten zu einer neuen Tragschiene hinzufügen
-                    var fehlendeKlemmleisten =
-                        alleKlemmleisten.Except(tragschienenKonfiguration.SelectMany(x => x)).ToList();
-                    if (fehlendeKlemmleisten.Any())
-                    {
-                        tragschienenKonfiguration.Add(fehlendeKlemmleisten.ToArray());
-                    }
+                    var tragschienenKonfiguration =  CreateTrageschienenKonfigurationFromKonfiguration(projectId, alleKlemmleisten);
 
                     int no = 1;
                     foreach (var einzelneTragschieneKfg in tragschienenKonfiguration)
                     {
                         Console.Write($"WAGO Klemmenplan #{no} ({string.Join(",", einzelneTragschieneKfg)}) erstellen ... ");
-                        var xmlFileName = Path.Combine(outputPath, data.documentData.projectName + "_#" + no + ".xml");
-                        WriteWagoXmlFile(data, xmlFileName, einzelneTragschieneKfg.ToList());
+                        var xmlFileName = Path.Combine(_outputPath, data.documentData.projectName + "_#" + no + ".xml");
+                        WriteWagoXmlFile(data, xmlFileName, einzelneTragschieneKfg);
                         Console.WriteLine("ok");
 
                         no++;
@@ -106,7 +68,9 @@ namespace stromlaufplanToolsCLI.Commands
         }
 
 
-        private void WriteWagoXmlFile(PlanData data, string xmlFileName, List<string> tragschienenKonfiguration)
+
+
+        private void WriteWagoXmlFile(PlanData data, string xmlFileName, TrageschieneKonfiguration tragschienenKonfiguration)
         {
             // jedes Listenelement entspricht einer
 
@@ -125,7 +89,7 @@ namespace stromlaufplanToolsCLI.Commands
             int position = 1;
 
             foreach (var nodeData in outNodes
-                .Where(x => tragschienenKonfiguration.Contains(x.klemmleiste))      // nur die angegebenen Klemmleisten exportieren
+                .Where(x => tragschienenKonfiguration.Klemmleisten.Contains(x.klemmleiste))      // nur die angegebenen Klemmleisten exportieren
                                                                                     //.OrderBy( x => tragschienenKonfiguration.IndexOf(x.klemmleiste))       // die Reihenfolge wird durch die Konfiguration definiert.
                 .OrderBy(x => x.KlemmleisteNummer)
                 .ThenBy(x => x.klemmenBlockNummer))
@@ -142,10 +106,10 @@ namespace stromlaufplanToolsCLI.Commands
                     if (nodeData.Type == "out")
                     {
                         // Einspeiseklemme sofort hinzufügen
-                        AddWagoKlemme(xmlProject, ref position, _reihenklemmenCfg["Einspeiseklemme"], nodeData.klemmleiste);
+                        AddWagoKlemme(xmlProject, ref position, _reihenklemmenCfg["WagoEinspeiseklemme"], nodeData.klemmleiste);
 
                         // Sammelschienenträger merken wir uns bis zum Ende der Klemmleiste
-                        klemmeKlemmleistenEnde = _reihenklemmenCfg["Sammelschienenträger"];
+                        klemmeKlemmleistenEnde = _reihenklemmenCfg["WagoSammelschienenträger"];
                     }
                     else
                     {

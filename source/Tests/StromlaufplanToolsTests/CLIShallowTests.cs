@@ -42,31 +42,6 @@ namespace StromlaufplanToolsTests
         }
 
         [TestMethod]
-        public void Export_Klemmliste_using_OutputPathWithFilename()
-        {
-            // Arrange
-            Action<Options> prepareOptions = o =>
-            {
-                var restClient = new StromlaufplanRestClient(o.Token);
-                var projects = restClient.GetProjects();
-
-                o.Klemmenplan = true;
-                o.OutputFilename = Path.Combine(TestContext.TestRunResultsDirectory, TestContext.TestName, o.Token, "Klemmenplan.xlsx");
-                o.Ids = projects.Select(x => x.id);
-            };
-
-            Action<Options> verifyResult = o =>
-            {
-                File.Exists(o.OutputFilename).Should().BeTrue();
-            };
-
-            // Act
-            RunWithApiTokens(prepareOptions, verifyResult);
-
-            // Assert
-        }
-
-        [TestMethod]
         public void Export_Klemmliste_using_OutputPathWithoutFilename()
         {
             // Arrange
@@ -76,40 +51,15 @@ namespace StromlaufplanToolsTests
                 var projects = restClient.GetProjects();
 
                 o.Klemmenplan = true;
-                o.OutputFilename = Path.Combine(TestContext.TestRunResultsDirectory, TestContext.TestName, o.Token) +"/";
+                o.OutputPath = Path.Combine(TestContext.TestRunResultsDirectory, TestContext.TestName, o.Token);
                 o.Ids = projects.Select(x => x.id);
             };
 
             Action<Options> verifyResult = o =>
             {
-                File.Exists(Path.Combine(o.OutputFilename, "export.xlsx")).Should().BeTrue();
-            };
-
-            // Act
-            RunWithApiTokens(prepareOptions, verifyResult);
-
-            // Assert
-        }
-
-        [TestMethod]
-        public void Export_WagoXml_using_OutputPathWithFilename()
-        {
-            // Arrange
-            Action<Options> prepareOptions = o =>
-            {
-                var restClient = new StromlaufplanRestClient(o.Token);
-                var projects = restClient.GetProjects();
-
-                o.WagoXML = true;
-                o.OutputFilename = Path.Combine(TestContext.TestRunResultsDirectory, TestContext.TestName, o.Token, "sample.xlsx");
-                o.Ids = projects.Select(x => x.id);
-            };
-
-            Action<Options> verifyResult = o =>
-            {
-                var resultFiles = Directory.EnumerateFiles(Path.GetDirectoryName(o.OutputFilename)).ToList();
-                resultFiles.Count.Should().BeGreaterThan(0);
-                resultFiles.ForEach(x => Path.GetExtension(x).Should().Be(".xml"));
+                var resultFiles = Directory.EnumerateFiles(o.OutputPath).ToList();
+                resultFiles.Count().Should().Be(1);
+                resultFiles.ForEach(x => Path.GetExtension(x).Should().Be(".xlsx"));
             };
 
             // Act
@@ -127,14 +77,14 @@ namespace StromlaufplanToolsTests
                 var restClient = new StromlaufplanRestClient(o.Token);
                 var projects = restClient.GetProjects();
 
-                o.WagoXML = true;
-                o.OutputFilename = Path.Combine(TestContext.TestRunResultsDirectory, TestContext.TestName, o.Token) + "/";
+                o.WagoXml = true;
+                o.OutputPath = Path.Combine(TestContext.TestRunResultsDirectory, TestContext.TestName, o.Token);
                 o.Ids = projects.Select(x => x.id);
             };
 
             Action<Options> verifyResult = o =>
             {
-                var resultFiles = Directory.EnumerateFiles(o.OutputFilename).ToList();
+                var resultFiles = Directory.EnumerateFiles(o.OutputPath).ToList();
                 resultFiles.Count.Should().BeGreaterThan(0);
                 resultFiles.ForEach( x => Path.GetExtension(x).Should().Be(".xml"));
             };

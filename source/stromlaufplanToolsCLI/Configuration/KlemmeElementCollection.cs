@@ -20,7 +20,9 @@ namespace stromlaufplanToolsCLI.Configuration
         /// <returns>The key.</returns>
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((KlemmeConfigurationElement)element).TypString;
+            var klemmeCfg = ((KlemmeConfigurationElement) element);
+
+            return $"{klemmeCfg.TypString}.{klemmeCfg.Producer}";
         }
 
         /// <summary>

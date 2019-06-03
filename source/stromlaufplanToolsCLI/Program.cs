@@ -35,12 +35,13 @@ namespace stromlaufplanToolsCLI
                 var command = new ExportKlemmlisteCommand(
                     options.Token,
                     options.Ids,
-                    options.OutputFilename,
+                    options.OutputPath,
+                    options.Producer,
                     config.LeitungstypConfigurations);
                 command.Execute();
             }
 
-            if (options.WagoXML)
+            if (options.WagoXml)
             {
                 var config =
                     (LeitungstypConfigurationSection)ConfigurationManager.GetSection(
@@ -51,7 +52,25 @@ namespace stromlaufplanToolsCLI
                 var command = new ExportWagoXmlCommand(
                     options.Token,
                     options.Ids,
-                    options.OutputFilename,
+                    options.OutputPath,
+                    options.TragschienenKonfiguration,
+                    config.LeitungstypConfigurations,
+                    reihenklemmenCfg);
+                command.Execute();
+            }
+
+            if (options.ClipProject)
+            {
+                var config =
+                    (LeitungstypConfigurationSection)ConfigurationManager.GetSection(
+                        "Leitungstypen");
+                var reihenklemmenCfg = (NameValueCollection)ConfigurationManager.GetSection("Reihenklemmen");
+
+
+                var command = new ExportPhoenixClipProjectCsvCommand(
+                    options.Token,
+                    options.Ids,
+                    options.OutputPath,
                     options.TragschienenKonfiguration,
                     config.LeitungstypConfigurations,
                     reihenklemmenCfg);

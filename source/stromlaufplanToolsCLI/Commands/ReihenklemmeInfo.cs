@@ -9,22 +9,33 @@ namespace stromlaufplanToolsCLI.Commands
     {
         public string ArticleNo { get; }
 
-        public ReihenklemmeInfo(string name, string description, string articleNo, string klemmen, int width, IEnumerable<Adern> adern, Color color)
+        public string ArticleName { get; }
+
+        public ReihenklemmeInfo() { }
+
+        public ReihenklemmeInfo(string name, string producer, string articleNo, string articleName, string klemmen, int width, IEnumerable<Adern> adern, Color color)
         {
             ArticleNo = articleNo;
+            ArticleName = articleName;
             Klemmen = klemmen;
             Name = name;
-            Description = description;
+            Producer = producer;
             Color = color;
             Adern = adern.ToList();
             Width = width;
+        }
+
+        public ReihenklemmeInfo(string articleNo, string articleName)
+        {
+            ArticleNo = articleNo;
+            ArticleName = articleName;
         }
 
         public string Klemmen;
 
         public string Name;
 
-        public string Description;
+        public string Producer;
 
         public Color Color;
 

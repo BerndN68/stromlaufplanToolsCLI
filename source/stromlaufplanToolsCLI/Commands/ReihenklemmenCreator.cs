@@ -10,11 +10,14 @@ namespace stromlaufplanToolsCLI.Commands
     public class ReihenklemmenCreator
     {
         private readonly LeitungstypConfigurationElementCollection _configLeitungstypConfigurations;
+        private readonly string _producer;
 
         public ReihenklemmenCreator(
-            LeitungstypConfigurationElementCollection configLeitungstypConfigurations)
+            LeitungstypConfigurationElementCollection configLeitungstypConfigurations,
+            string producer)
         {
             _configLeitungstypConfigurations = configLeitungstypConfigurations;
+            _producer = producer;
         }
 
         public List<ReihenklemmeInfo> CreateReihenklemmen(TreeNodeDataOut nodeData, ref int currentKlemmeNrInLeiste)
@@ -41,8 +44,9 @@ namespace stromlaufplanToolsCLI.Commands
                     // Reihenklemme erstellen
                     reihenklemmen.Add(new ReihenklemmeInfo(
                         klemmeCfg.ShortName,
-                        klemmeCfg.Description,
+                        klemmeCfg.Producer,
                         klemmeCfg.ArticleNo,
+                        klemmeCfg.ArticleName,
                         CreateKlemmenListe(ref currentKlemmeNrInLeiste, adernFuerKlemme),
                         klemmeCfg.Width,
                         adernFuerKlemme,
@@ -68,6 +72,7 @@ namespace stromlaufplanToolsCLI.Commands
             {
                 // größtmögliche Klemme, allerdings muss es für die restlichen Adern noch eine passende Klemme geben
                 var klemmeCfgSortiert = leitungstypCfg.Klemmen.OfType<KlemmeConfigurationElement>()
+                    .Where( x => x.Producer == _producer)
                     .OrderBy(x => x.Typen.Length).ToList();
 
                 for (int idx = klemmeCfgSortiert.Count - 1; idx >= 0; idx--)
@@ -95,7 +100,9 @@ namespace stromlaufplanToolsCLI.Commands
 
             }
 
-            foreach (KlemmeConfigurationElement currentKlemmeCfg in leitungstypCfg.Klemmen)
+            foreach (KlemmeConfigurationElement currentKlemmeCfg in leitungstypCfg.Klemmen
+                                                                        .OfType<KlemmeConfigurationElement>()
+                                                                        .Where(x => x.Producer == _producer || string.IsNullOrEmpty(x.Producer)))
             {
                 var alleAdern = adern.ToList();
                 usedAdern = new List<Adern>();
@@ -155,7 +162,9 @@ namespace stromlaufplanToolsCLI.Commands
         private bool IsMehrstockklemmenModus(LeitungstypConfigurationElement leitungstypCfg)
         {
 
-            foreach (KlemmeConfigurationElement klemmeCfg in leitungstypCfg.Klemmen)
+            foreach (KlemmeConfigurationElement klemmeCfg in leitungstypCfg.Klemmen
+                                                                .OfType<KlemmeConfigurationElement>()
+                                                                .Where(x => x.Producer == _producer))
             {
                 foreach (var typ in klemmeCfg.Typen)
                 {
@@ -188,7 +197,7 @@ namespace stromlaufplanToolsCLI.Commands
                 }
 
                 if (!leitungstypElement.Leitungstypen.Any() ||
-                    leitungstypElement.Leitungstypen.Any(x => leitungstyp.Contains(x)) &&
+                    leitungstypElement.Leitungstypen.Any(x => leitungstyp.IndexOf(x, 0, StringComparison.OrdinalIgnoreCase) >= 0)  &&
                     querschnitt >= leitungstypElement.MinQ && querschnitt <= leitungstypElement.MaxQ)
                 {
                     configuration = leitungstypElement;

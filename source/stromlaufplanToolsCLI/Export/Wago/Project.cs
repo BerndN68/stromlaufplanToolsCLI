@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Xml;
 using System.Xml.Serialization;
 
-namespace stromlaufplanToolsCLI.Wago
+namespace stromlaufplanToolsCLI.Export.Wago
 {
     public class Project
     {

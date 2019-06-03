@@ -1,7 +1,6 @@
-﻿using System.Xml;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
-namespace stromlaufplanToolsCLI.Wago
+namespace stromlaufplanToolsCLI.Export.Wago
 {
     [XmlRoot("WAGO_XML_CAE")]
     public class WagoXmlCae

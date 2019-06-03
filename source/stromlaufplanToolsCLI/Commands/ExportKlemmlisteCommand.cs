@@ -15,19 +15,20 @@ namespace stromlaufplanToolsCLI.Commands
     public class ExportKlemmlisteCommand : CommandBase
     {
         private readonly IEnumerable<string> _ids;
-        private string _outputFileName;
+        private string _outputPath;
         private readonly ReihenklemmenCreator _reihenklemmenCreator;
 
         public ExportKlemmlisteCommand(
             string token,
             IEnumerable<string> ids,
-            string outputFileName,
+            string outputPath,
+            Producer producer,
             LeitungstypConfigurationElementCollection configLeitungstypConfigurations)
             : base(token)
         {
             _ids = ids;
-            _outputFileName = outputFileName;
-            _reihenklemmenCreator = new ReihenklemmenCreator(configLeitungstypConfigurations);
+            _outputPath = outputPath;
+            _reihenklemmenCreator = new ReihenklemmenCreator(configLeitungstypConfigurations, producer.ToString());
         }
 
         public override void Execute()
@@ -35,17 +36,12 @@ namespace stromlaufplanToolsCLI.Commands
             Console.WriteLine("Klemmlisten exportieren");
 
             // Ausgabeverzeichnis erstellen
-            var outputPath = Path.GetDirectoryName(_outputFileName);
-            if (!Directory.Exists(outputPath))
+            if (!Directory.Exists(_outputPath))
             {
-                Directory.CreateDirectory(outputPath);
+                Directory.CreateDirectory(_outputPath);
             }
 
-            var fileName = Path.GetFileName(_outputFileName);
-            if (string.IsNullOrEmpty(fileName))
-            {
-                _outputFileName = Path.Combine(_outputFileName, "export.xlsx");
-            }
+            var outputFileName = Path.Combine(_outputPath, "export.xlsx");
 
             //Creates a blank workbook. Use the using statment, so the package is disposed when we are done.
             using (var xlPackage = new ExcelPackage())
@@ -62,9 +58,9 @@ namespace stromlaufplanToolsCLI.Commands
                 }
 
                 //Save the new workbook. We haven't specified the filename so use the Save as method.
-                Console.Write($"Excel Datei speichern {_outputFileName} ... ");
+                Console.Write($"Excel Datei speichern {outputFileName} ... ");
 
-                xlPackage.SaveAs(new FileInfo(_outputFileName));
+                xlPackage.SaveAs(new FileInfo(outputFileName));
                 Console.WriteLine("ok");
 
 
@@ -332,13 +328,13 @@ namespace stromlaufplanToolsCLI.Commands
                 {
                     var currentKlemme = reihenklemmen[idx];
 
-                    if (!gesamtanzahlReihenklemmen.ContainsKey(currentKlemme.Description))
+                    if (!gesamtanzahlReihenklemmen.ContainsKey(currentKlemme.Producer))
                     {
-                        gesamtanzahlReihenklemmen[currentKlemme.Description] = 1;
+                        gesamtanzahlReihenklemmen[currentKlemme.Producer] = 1;
                     }
                     else
                     {
-                        gesamtanzahlReihenklemmen[currentKlemme.Description] = gesamtanzahlReihenklemmen[currentKlemme.Description] + 1;
+                        gesamtanzahlReihenklemmen[currentKlemme.Producer] = gesamtanzahlReihenklemmen[currentKlemme.Producer] + 1;
                     }
 
                     // Col 7: Klemmen
@@ -362,7 +358,7 @@ namespace stromlaufplanToolsCLI.Commands
                     range.Style.Fill.BackgroundColor.SetColor(reihenklemmen[idx].Color);
 
                     // Col 9: Beschreibung
-                    ws.Cells[row, 9].Value = reihenklemmen[idx].Description;
+                    ws.Cells[row, 9].Value = reihenklemmen[idx].Producer;
                     range = ws.Cells[row, 9, row + reihenklemmen[idx].Width - 1, 98];
                     range.Merge = true;
                     range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;

@@ -32,7 +32,7 @@ namespace stromlaufplanToolsCLI.Configuration
                 null));
 
             Properties.Add(new ConfigurationProperty(
-                DESCRIPTION_PROPERTY,
+                PRODUCER_PROPERTY,
                 typeof(string),
                 null));
 
@@ -40,6 +40,12 @@ namespace stromlaufplanToolsCLI.Configuration
                 ARTICLENO_PROPERTY,
                 typeof(string),
                 null));
+
+            Properties.Add(new ConfigurationProperty(
+                ARTICLENAME_PROPERTY,
+                typeof(string),
+                null));
+
         }
 
 
@@ -68,7 +74,7 @@ namespace stromlaufplanToolsCLI.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the value for description.
+        /// Gets or sets the value for color.
         /// </summary>
         public Color Color
         {
@@ -89,12 +95,12 @@ namespace stromlaufplanToolsCLI.Configuration
             set => this[WIDTH_PROPERTY] = value;
         }
 
-        public string Description
+        public string Producer
         {
-            get => (string)this[DESCRIPTION_PROPERTY];
+            get => (string)this[PRODUCER_PROPERTY];
             set
             {
-                this[DESCRIPTION_PROPERTY] = value;
+                this[PRODUCER_PROPERTY] = value;
             }
         }
 
@@ -104,6 +110,15 @@ namespace stromlaufplanToolsCLI.Configuration
             set
             {
                 this[ARTICLENO_PROPERTY] = value;
+            }
+        }
+
+        public string ArticleName
+        {
+            get => (string)this[ARTICLENAME_PROPERTY];
+            set
+            {
+                this[ARTICLENAME_PROPERTY] = value;
             }
         }
 
@@ -118,8 +133,10 @@ namespace stromlaufplanToolsCLI.Configuration
         
         private const string WIDTH_PROPERTY = "width";
 
-        private const string DESCRIPTION_PROPERTY = "description";
+        private const string PRODUCER_PROPERTY = "producer";
 
         private const string ARTICLENO_PROPERTY = "articleNo";
+
+        private const string ARTICLENAME_PROPERTY = "articleName";
     }
 }
