@@ -41,7 +41,7 @@ namespace stromlaufplanToolsCLI.Commands
                 Directory.CreateDirectory(_outputPath);
             }
 
-            var outputFileName = Path.Combine(_outputPath, "export.xlsx");
+            var outputFileName = Path.Combine(_outputPath, "export_Klemmen.xlsx");
 
             //Creates a blank workbook. Use the using statment, so the package is disposed when we are done.
             using (var xlPackage = new ExcelPackage())
