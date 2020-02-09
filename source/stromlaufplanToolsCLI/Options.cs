@@ -32,5 +32,9 @@ namespace stromlaufplanToolsCLI
         [Option('p', "Producer", Required = false,
             HelpText = "Definiert den Hersteller der Klemmen (Phoenix oder Wago)")]
         public Producer Producer { get; set; } = Producer.Wago;
+
+        [Option('d', "Komponenten", Required = false, HelpText = "Befehl zum Export der Komponenten")]
+        public bool Komponenten { get; set; }
+
     }
 }

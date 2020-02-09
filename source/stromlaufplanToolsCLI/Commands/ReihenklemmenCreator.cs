@@ -22,7 +22,7 @@ namespace stromlaufplanToolsCLI.Commands
 
         public List<ReihenklemmeInfo> CreateReihenklemmen(TreeNodeDataOut nodeData, ref int currentKlemmeNrInLeiste)
         {
-            if (nodeData.klemmleiste == "(intern)")
+            if (ShouldIgnoreKlemmleiste(nodeData))
             {
                 return new List<ReihenklemmeInfo>();
             }
@@ -37,7 +37,7 @@ namespace stromlaufplanToolsCLI.Commands
 
             var nichtbearbeiteteAdern = nodeData.adern.ToList();
 
-            while (nichtbearbeiteteAdern.Any())
+            while (nichtbearbeiteteAdern.Any() && leitungstypCfg.Ignore == false)
             {
                 if (TryGetKlemmeConfiguration(leitungstypCfg, nichtbearbeiteteAdern, out var klemmeCfg, out var adernFuerKlemme))
                 {
@@ -64,6 +64,19 @@ namespace stromlaufplanToolsCLI.Commands
             }
 
             return reihenklemmen;
+        }
+
+        private bool ShouldIgnoreKlemmleiste(TreeNodeDataOut nodeData)
+        {
+            if (_configLeitungstypConfigurations.OfType<LeitungstypConfigurationElement>()
+                .Where(x => x.Ignore == true)
+                .SelectMany(x => x.Leitungstypen)
+                .Any(x => x == nodeData.klemmleiste))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool TryGetKlemmeConfiguration(LeitungstypConfigurationElement leitungstypCfg, List<Adern> adern, out KlemmeConfigurationElement klemmeCfg, out List<Adern> usedAdern)
@@ -100,9 +113,80 @@ namespace stromlaufplanToolsCLI.Commands
 
             }
 
+            //if (StartWithLL(leitungstypCfg, adern, out klemmeCfg, out usedAdern)) return true;
+            if (UseOrderFromConfig(leitungstypCfg, adern, out klemmeCfg, out usedAdern)) return true;
+
+            klemmeCfg = null;
+            usedAdern = null;
+            return false;
+        }
+
+
+        /// <summary>
+        /// Die Reihenfolge der Klemmen orientiert sich an der Reihenfolge in der config Datei
+        /// </summary>
+        /// <param name="leitungstypCfg"></param>
+        /// <param name="adern"></param>
+        /// <param name="klemmeCfg"></param>
+        /// <param name="usedAdern"></param>
+        /// <returns></returns>
+        private bool UseOrderFromConfig(LeitungstypConfigurationElement leitungstypCfg, List<Adern> adern, out KlemmeConfigurationElement klemmeCfg,
+            out List<Adern> usedAdern)
+        { 
             foreach (KlemmeConfigurationElement currentKlemmeCfg in leitungstypCfg.Klemmen
-                                                                        .OfType<KlemmeConfigurationElement>()
-                                                                        .Where(x => x.Producer == _producer || string.IsNullOrEmpty(x.Producer)))
+                .OfType<KlemmeConfigurationElement>()
+                .Where(x => x.Producer == _producer || string.IsNullOrEmpty(x.Producer)))
+            {
+                var alleAdern = adern.ToList();
+                usedAdern = new List<Adern>();
+                bool valid = true;
+
+                foreach (var typ in currentKlemmeCfg.Typen)
+                {
+
+                    // nach passenden Adern suchen
+                    bool optional = false;
+                    var currentTyp = typ;
+                    if (IsOptional(typ))
+                    {
+                        optional = true;
+                        currentTyp = typ.Trim(new[] { '[', ']' });
+                    }
+
+                    var foundAder = alleAdern.FirstOrDefault(x => IsKlemmenTyp(x.klemmenTyp, currentTyp));
+                    if (foundAder == null && optional == false)
+                    {
+                        // suche abbrechen
+                        valid = false;
+                        break;
+                    }
+
+                    if (foundAder != null)
+                    {
+                        alleAdern.Remove(foundAder);
+                        usedAdern.Add(foundAder);
+                    }
+                }
+
+                if (valid)
+                {
+                    klemmeCfg = currentKlemmeCfg;
+                    return true;
+                }
+            }
+
+            klemmeCfg = null;
+            usedAdern = null;
+            return false;
+        }
+
+
+        private bool StartWithLL(LeitungstypConfigurationElement leitungstypCfg, List<Adern> adern, out KlemmeConfigurationElement klemmeCfg,
+            out List<Adern> usedAdern)
+        {
+            foreach (KlemmeConfigurationElement currentKlemmeCfg in leitungstypCfg.Klemmen
+                .OfType<KlemmeConfigurationElement>()
+                .Where(x => x.Producer == _producer || string.IsNullOrEmpty(x.Producer)))
             {
                 var alleAdern = adern.ToList();
                 usedAdern = new List<Adern>();
@@ -117,7 +201,7 @@ namespace stromlaufplanToolsCLI.Commands
                     if (IsOptional(typ))
                     {
                         optional = true;
-                        currentTyp = typ.Trim(new[] { '[', ']' });
+                        currentTyp = typ.Trim(new[] {'[', ']'});
                     }
 
                     var foundAder = adernFuerAktuelleSuche.FirstOrDefault(x => IsKlemmenTyp(x.klemmenTyp, currentTyp));
@@ -140,7 +224,6 @@ namespace stromlaufplanToolsCLI.Commands
                     klemmeCfg = currentKlemmeCfg;
                     return true;
                 }
-
             }
 
             klemmeCfg = null;

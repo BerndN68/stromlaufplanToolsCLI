@@ -13,5 +13,10 @@ namespace stromlaufplanToolsCLI.Stromlaufplan.Models
         public string Type;
 
         public List<TreeNode> children;
+
+        public override string ToString()
+        {
+            return text;
+        }
     }
 }

@@ -62,9 +62,6 @@ namespace stromlaufplanToolsCLI.Commands
 
                 xlPackage.SaveAs(new FileInfo(outputFileName));
                 Console.WriteLine("ok");
-
-
-
             }
 
         }
@@ -358,7 +355,7 @@ namespace stromlaufplanToolsCLI.Commands
                     range.Style.Fill.BackgroundColor.SetColor(reihenklemmen[idx].Color);
 
                     // Col 9: Beschreibung
-                    ws.Cells[row, 9].Value = reihenklemmen[idx].Producer;
+                    ws.Cells[row, 9].Value = reihenklemmen[idx].ArticleName;
                     range = ws.Cells[row, 9, row + reihenklemmen[idx].Width - 1, 98];
                     range.Merge = true;
                     range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;

@@ -25,6 +25,15 @@ namespace stromlaufplanToolsCLI
                 command.Execute();
             }
 
+            if (options.Komponenten)
+            {
+                var command = new ExportKomponentenCommand(
+                    options.Token,
+                    options.Ids,
+                    options.OutputPath);
+                command.Execute();
+            }
+
             if (options.Klemmenplan)
             {
                 var config =
